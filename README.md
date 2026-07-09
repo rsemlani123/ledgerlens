@@ -39,7 +39,7 @@ In Accounts Payable, every invoice has to be read, matched to the correct expens
 ## Built with
 
 - **HTML, CSS, JavaScript** single self-contained file, no installation needed.
-- **A rule-based accounting engine** a chart of accounts + keyword logic that mirrors how GL coding is done, designed to be swappable with an AI model later.
+- **A rule based accounting engine** a chart of accounts + keyword logic that mirrors how GL coding is done, designed to be swappable with an AI model later.
 - **AI-assisted development** built and tested with the help of AI tools (Claude / ChatGPT) as a pair-programming partner.
 
 ## Chart of accounts (sample)
