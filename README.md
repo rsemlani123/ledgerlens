@@ -1,25 +1,25 @@
-# 📒 LedgerLens — AI Invoice-to-Journal-Entry & GL Coding Assistant
+# 📒 LedgerLens: AI Invoice-to-Journal-Entry & GL Coding Assistant
 
 **Paste a vendor invoice → get a balanced journal entry with the right GL account, in seconds.**
 
 LedgerLens automates the first (and most repetitive) step of Accounts Payable: reading an invoice, deciding which General Ledger account it belongs to, and writing the double-entry. Instead of typing entries by hand hundreds of times a month, an accountant reviews a suggested entry that is already coded and always balanced.
 
 > 🔗 **Live demo:** https://rsemlani123.github.io/ledgerlens/
-> 💼 Built by Rohneet Semlani — M.S. Finance (Arizona State University) | Staff Accountant / AP-AR
+> 💼 Built by Rohneet Semlani M.S. Finance (Arizona State University) | Staff Accountant / AP-AR
 
 ---
 
 ## The problem it solves
 
-In Accounts Payable, every invoice has to be read, matched to the correct expense account (GL coding), and booked as a journal entry before month-end close. Done manually, this is slow and a common source of posting errors. LedgerLens takes the invoice text and does the first pass automatically, so the accountant reviews instead of retypes — cutting coding time and reducing mistakes before they reach the books.
+In Accounts Payable, every invoice has to be read, matched to the correct expense account (GL coding), and booked as a journal entry before month-end close. Done manually, this is slow and a common source of posting errors. LedgerLens takes the invoice text and does the first pass automatically, so the accountant reviews instead of retypes cutting coding time and reducing mistakes before they reach the books.
 
 ## What it does
 
-- **Reads the invoice** — extracts vendor, invoice number, date, subtotal, tax, and total.
-- **Codes the GL account** — matches keywords in the invoice to a built-in chart of accounts (e.g. "software subscription" → *5020 Software & Subscriptions Expense*).
-- **Writes the journal entry** — books `Dr Expense` + `Dr Input Tax` against `Cr Accounts Payable`.
-- **Guarantees balance** — checks that total debits equal total credits and flags anything that doesn't.
-- **Shows confidence** — warns when no clear GL match is found, so it can be reviewed.
+- **Reads the invoice** - extracts vendor, invoice number, date, subtotal, tax, and total.
+- **Codes the GL account** - matches keywords in the invoice to a built-in chart of accounts (e.g. "software subscription" → *5020 Software & Subscriptions Expense*).
+- **Writes the journal entry** - books `Dr Expense` + `Dr Input Tax` against `Cr Accounts Payable`.
+- **Guarantees balance** - checks that total debits equal total credits and flags anything that doesn't.
+- **Shows confidence** - warns when no clear GL match is found, so it can be reviewed.
 
 ## How it works
 
@@ -32,19 +32,19 @@ In Accounts Payable, every invoice has to be read, matched to the correct expens
 
 | Account | Debit | Credit |
 |---|---|---|
-| Expense / Asset (e.g. 5020 Software) | Net amount | — |
-| 1360 Input Tax / Sales Tax Receivable | Tax amount | — |
-| 2100 Accounts Payable | — | Total amount |
+| Expense / Asset (e.g. 5020 Software) | Net amount | - |
+| 1360 Input Tax / Sales Tax Receivable | Tax amount | - |
+| 2100 Accounts Payable | - | Total amount |
 
 ## Built with
 
-- **HTML, CSS, JavaScript** — single self-contained file, no installation needed.
-- **A rule-based accounting engine** — a chart of accounts + keyword logic that mirrors how GL coding is done, designed to be swappable with an AI model later.
-- **AI-assisted development** — built and tested with the help of AI tools (Claude / ChatGPT) as a pair-programming partner.
+- **HTML, CSS, JavaScript** single self-contained file, no installation needed.
+- **A rule-based accounting engine** a chart of accounts + keyword logic that mirrors how GL coding is done, designed to be swappable with an AI model later.
+- **AI-assisted development** built and tested with the help of AI tools (Claude / ChatGPT) as a pair-programming partner.
 
 ## Chart of accounts (sample)
 
-Covers common expense categories: Software & Subscriptions, Professional Fees, Utilities, Rent, Travel & Entertainment, Marketing, Repairs & Maintenance, Telephone & Internet, Office Equipment (Fixed Asset), Office Supplies, Prepaid Insurance, and Freight & Shipping — with a general expense fallback.
+Covers common expense categories: Software & Subscriptions, Professional Fees, Utilities, Rent, Travel & Entertainment, Marketing, Repairs & Maintenance, Telephone & Internet, Office Equipment (Fixed Asset), Office Supplies, Prepaid Insurance, and Freight & Shipping with a general expense fallback.
 
 ## How to run it
 
