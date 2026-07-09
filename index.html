@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LedgerLens — AI Invoice-to-Journal-Entry Assistant</title>
+<style>
+  :root{
+    --navy:#0f2440; --navy2:#16345c; --teal:#12a594; --teal-dark:#0d7d70;
+    --bg:#f4f6fa; --card:#ffffff; --line:#e2e8f0; --text:#1e293b;
+    --muted:#64748b; --debit:#0d7d70; --credit:#b45309; --good:#12a594;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--text);line-height:1.5;}
+  header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:28px 24px;}
+  .wrap{max-width:1080px;margin:0 auto;}
+  header h1{margin:0;font-size:26px;letter-spacing:.3px;}
+  header .tag{margin:6px 0 0;color:#b9c7dc;font-size:15px;}
+  header .pill{display:inline-block;margin-top:14px;background:rgba(18,165,148,.18);
+       border:1px solid var(--teal);color:#7fe9d8;padding:4px 12px;border-radius:999px;font-size:12.5px;}
+  main{max-width:1080px;margin:24px auto;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media(max-width:840px){main{grid-template-columns:1fr;}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;
+        box-shadow:0 1px 3px rgba(15,36,64,.06);}
+  .card h2{margin:0 0 4px;font-size:16px;}
+  .card .sub{margin:0 0 14px;color:var(--muted);font-size:13px;}
+  .samples{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .samples button{background:#eef6f5;border:1px solid #cfe8e3;color:var(--teal-dark);
+        font-size:12.5px;padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;}
+  .samples button:hover{background:#dff0ed;}
+  textarea{width:100%;min-height:230px;resize:vertical;border:1px solid var(--line);border-radius:10px;
+        padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#334155;}
+  textarea:focus{outline:2px solid var(--teal);border-color:var(--teal);}
+  .go{margin-top:12px;width:100%;background:var(--teal);color:#fff;border:none;border-radius:10px;
+        padding:13px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;}
+  .go:hover{background:var(--teal-dark);}
+  .empty{color:var(--muted);font-size:14px;text-align:center;padding:40px 10px;}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:16px;}
+  .fields .f{border-bottom:1px dashed var(--line);padding-bottom:6px;}
+  .fields .k{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+  .fields .v{font-size:14.5px;font-weight:600;margin-top:2px;}
+  .gl{background:#f0fdf9;border:1px solid #bcece2;border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+  .gl .code{font-weight:700;color:var(--teal-dark);}
+  .gl .why{font-size:12.5px;color:#475569;margin-top:4px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .debit{color:var(--debit);font-weight:600;}
+  .credit{color:var(--credit);font-weight:600;}
+  tr.total td{border-top:2px solid var(--navy);border-bottom:none;font-weight:700;padding-top:11px;}
+  .badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:7px 13px;border-radius:8px;
+        font-size:13px;font-weight:600;}
+  .badge.ok{background:#e7f9f4;color:var(--teal-dark);border:1px solid #bcece2;}
+  .badge.warn{background:#fef3e2;color:#b45309;border:1px solid #f6d9a8;}
+  footer{max-width:1080px;margin:10px auto 40px;padding:0 24px;color:var(--muted);font-size:12.5px;}
+  footer code{background:#eef2f7;padding:1px 5px;border-radius:4px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>📒 LedgerLens</h1>
+    <p class="tag">AI Invoice-to-Journal-Entry &amp; GL Coding Assistant — paste an invoice, get a balanced entry.</p>
+    <span class="pill">Automating the first mile of Accounts Payable</span>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: input -->
+  <section class="card">
+    <h2>1. Paste an invoice</h2>
+    <p class="sub">Try a sample, or paste any invoice text below.</p>
+    <div class="samples">
+      <button onclick="loadSample('software')">Sample: Software</button>
+      <button onclick="loadSample('consulting')">Sample: Consulting</button>
+      <button onclick="loadSample('utilities')">Sample: Utilities</button>
+    </div>
+    <textarea id="invoice" placeholder="Paste invoice text here..."></textarea>
+    <button class="go" onclick="run()">Generate Journal Entry →</button>
+  </section>
+
+  <!-- RIGHT: output -->
+  <section class="card">
+    <h2>2. Suggested journal entry</h2>
+    <p class="sub">Extracted details, GL coding, and a balanced double-entry.</p>
+    <div id="result"><div class="empty">Your journal entry will appear here.</div></div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <strong>How it works:</strong> LedgerLens reads the invoice text, extracts the vendor, dates and amounts,
+  matches keywords to a built-in chart of accounts to pick the GL account, then books
+  <code>Dr Expense</code> + <code>Dr Input Tax</code> against <code>Cr Accounts Payable</code> — always balanced.
+  Built with HTML, CSS &amp; JavaScript. Demo tool for portfolio use; always review before posting to the books.
+</footer>
+
+<script>
+/* ---------- 1. Chart of accounts + keyword rules ---------- */
+const GL_RULES = [
+  {code:"5020", name:"Software & Subscriptions Expense", keys:["software","subscription","saas","license","cloud","adobe","microsoft 365","zoom"]},
+  {code:"5030", name:"Professional Fees",                 keys:["consulting","advisory","legal","audit","professional","attorney","accounting services","deloitte","kpmg"]},
+  {code:"5040", name:"Utilities Expense",                 keys:["electricity","utility","utilities","water","power","gas bill","sewage"]},
+  {code:"5050", name:"Rent Expense",                      keys:["rent","lease","leasing","tenancy"]},
+  {code:"5060", name:"Travel & Entertainment",            keys:["flight","airfare","hotel","travel","uber","taxi","lodging","airlines"]},
+  {code:"5070", name:"Marketing & Advertising",           keys:["advertising","marketing","ads","campaign","seo","promotion"]},
+  {code:"5080", name:"Repairs & Maintenance",             keys:["repair","maintenance","servicing","upkeep"]},
+  {code:"5090", name:"Telephone & Internet",              keys:["internet","telephone","telecom","broadband","mobile plan","phone bill"]},
+  {code:"1500", name:"Office Equipment (Fixed Asset)",    keys:["laptop","computer","monitor","equipment","furniture","hardware","printer","server"]},
+  {code:"5010", name:"Office Supplies Expense",           keys:["paper","stationery","pens","office supplies","toner","ink","staples"]},
+  {code:"1330", name:"Prepaid Insurance",                 keys:["insurance","premium","policy"]},
+  {code:"5110", name:"Freight & Shipping",                keys:["freight","shipping","courier","delivery","logistics"]},
+];
+const DEFAULT_GL = {code:"6000", name:"General & Administrative Expense"};
+const TAX_ACCOUNT = {code:"1360", name:"Input Tax / Sales Tax Receivable"};
+const AP_ACCOUNT  = {code:"2100", name:"Accounts Payable"};
+
+/* ---------- 2. Sample invoices ---------- */
+const SAMPLES = {
+  software:
+`ADOBE SYSTEMS INC.
+345 Park Avenue, San Jose, CA
+
+Invoice #: INV-20455
+Date: 03/15/2026
+Bill To: Springer Capital
+
+Description: Creative Cloud annual software subscription (5 licenses)
+Subtotal: $1,200.00
+Sales Tax (8%): $96.00
+Total Due: $1,296.00`,
+  consulting:
+`DELOITTE ADVISORY LLP
+Invoice No: DA-8890
+Invoice Date: 04/02/2026
+Client: Springer Capital
+
+Professional consulting services - Q1 financial process review
+Subtotal: $5,000.00
+Tax: $400.00
+Amount Due: $5,400.00`,
+  utilities:
+`CITY POWER & LIGHT
+Invoice #: CPL-33217
+Date: 04/28/2026
+
+Monthly electricity / utility charges - main office
+Subtotal: $430.00
+Tax: $34.40
+Balance Due: $464.40`
+};
+function loadSample(k){ document.getElementById('invoice').value = SAMPLES[k]; }
+
+/* ---------- 3. Parsing helpers ---------- */
+function money(str){
+  if(!str) return null;
+  const cleaned = str.replace(/,/g,'');
+  // Prefer a $-prefixed amount (ignores things like "8%"); use the last one on the line.
+  const dollarMatches = cleaned.match(/\$\s*(\d+(?:\.\d{1,2})?)/g);
+  if(dollarMatches && dollarMatches.length){
+    return parseFloat(dollarMatches[dollarMatches.length-1].replace(/[^0-9.]/g,''));
+  }
+  // Otherwise fall back to the last plain number on the line.
+  const nums = cleaned.match(/\d+(?:\.\d{1,2})?/g);
+  return nums ? parseFloat(nums[nums.length-1]) : null;
+}
+function findAmount(text, labels){
+  const lines = text.split(/\n/);
+  for(const label of labels){
+    // \b...\b so "total" does not match inside "Subtotal"
+    const re = new RegExp("\\b" + label.replace(/ /g,"\\s+") + "\\b", "i");
+    for(const line of lines){
+      if(re.test(line)){ const v = money(line); if(v!==null) return v; }
+    }
+  }
+  return null;
+}
+function parseInvoice(text){
+  const lines = text.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  // Vendor: explicit label, else first line
+  let vendor = null;
+  const vLine = text.match(/(vendor|from|supplier|bill from)\s*:\s*(.+)/i);
+  if(vLine) vendor = vLine[2].trim(); else if(lines.length) vendor = lines[0];
+  // Invoice number
+  const invM = text.match(/invoice\s*(?:#|no\.?|number)?\s*:?\s*([A-Za-z0-9\-\/]+)/i);
+  const invoiceNo = invM ? invM[1] : "—";
+  // Date
+  const dateM = text.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\d{4}-\d{2}-\d{2})/);
+  const date = dateM ? dateM[0] : "—";
+  // Amounts
+  const total = findAmount(text, ["total due","amount due","balance due","total","grand total"]);
+  const tax   = findAmount(text, ["sales tax","tax","gst","vat"]) || 0;
+  let subtotal = findAmount(text, ["subtotal","sub total","net amount"]);
+  if(subtotal===null && total!==null) subtotal = +(total - tax).toFixed(2);
+  return {vendor, invoiceNo, date, subtotal, tax, total};
+}
+function pickGL(text){
+  const t = text.toLowerCase();
+  for(const rule of GL_RULES){
+    if(rule.keys.some(k=>t.includes(k))){
+      const hit = rule.keys.find(k=>t.includes(k));
+      return {code:rule.code, name:rule.name, why:`Matched keyword "${hit}" in the invoice text.`, confident:true};
+    }
+  }
+  return {code:DEFAULT_GL.code, name:DEFAULT_GL.name, why:"No specific keyword matched — defaulted to a general expense account. Review recommended.", confident:false};
+}
+
+/* ---------- 4. Render ---------- */
+function fmt(n){ return n===null||n===undefined ? "—" : "$"+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function run(){
+  const text = document.getElementById('invoice').value.trim();
+  const out = document.getElementById('result');
+  if(!text){ out.innerHTML = '<div class="empty">Please paste an invoice (or click a sample) first.</div>'; return; }
+  const d = parseInvoice(text);
+  if(d.total===null){ out.innerHTML = '<div class="empty">Could not find a total amount. Make sure the invoice text includes a line like "Total Due: $1,296.00".</div>'; return; }
+  const gl = pickGL(text);
+  const debitExpense = d.subtotal ?? +(d.total - d.tax).toFixed(2);
+  const debitTotal = +(debitExpense + d.tax).toFixed(2);
+  const balanced = Math.abs(debitTotal - d.total) < 0.01;
+
+  out.innerHTML = `
+    <div class="fields">
+      <div class="f"><div class="k">Vendor</div><div class="v">${d.vendor||"—"}</div></div>
+      <div class="f"><div class="k">Invoice #</div><div class="v">${d.invoiceNo}</div></div>
+      <div class="f"><div class="k">Date</div><div class="v">${d.date}</div></div>
+      <div class="f"><div class="k">Total</div><div class="v">${fmt(d.total)}</div></div>
+    </div>
+    <div class="gl">
+      <div><span class="code">${gl.code}</span> — ${gl.name}</div>
+      <div class="why">${gl.why}</div>
+    </div>
+    <table>
+      <thead><tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead>
+      <tbody>
+        <tr><td><strong>${gl.code}</strong> ${gl.name}</td><td class="num debit">${fmt(debitExpense)}</td><td class="num">—</td></tr>
+        ${d.tax>0?`<tr><td><strong>${TAX_ACCOUNT.code}</strong> ${TAX_ACCOUNT.name}</td><td class="num debit">${fmt(d.tax)}</td><td class="num">—</td></tr>`:``}
+        <tr><td><strong>${AP_ACCOUNT.code}</strong> ${AP_ACCOUNT.name}</td><td class="num">—</td><td class="num credit">${fmt(d.total)}</td></tr>
+        <tr class="total"><td>Totals</td><td class="num">${fmt(debitTotal)}</td><td class="num">${fmt(d.total)}</td></tr>
+      </tbody>
+    </table>
+    <div class="badge ${balanced?'ok':'warn'}">${balanced?'✓ Balanced — debits equal credits':'⚠ Not balanced — please review'}</div>
+    ${!gl.confident?'<div class="badge warn">⚠ Low-confidence GL code — verify the account</div>':''}
+  `;
+}
+</script>
+</body>
+</html>
