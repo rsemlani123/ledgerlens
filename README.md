@@ -4,7 +4,7 @@
 
 LedgerLens automates the first (and most repetitive) step of Accounts Payable: reading an invoice, deciding which General Ledger account it belongs to, and writing the double-entry. Instead of typing entries by hand hundreds of times a month, an accountant reviews a suggested entry that is already coded and always balanced.
 
-> 🔗 **Live demo:** _add your GitHub Pages link here after publishing_
+> 🔗 **Live demo:** https://rsemlani123.github.io/ledgerlens/
 > 💼 Built by Rohneet Semlani — M.S. Finance (Arizona State University) | Staff Accountant / AP-AR
 
 ---
